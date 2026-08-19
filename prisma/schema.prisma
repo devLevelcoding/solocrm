@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  fname     String
+  lname     String
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  status    String    @default("active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  proposals Proposal[]
+  contracts Contract[]
+  invoices  Invoice[]
+  tasks     Task[]
+
+  @@map("clients")
+}
+
+model Proposal {
+  id         Int       @id @default(autoincrement())
+  clientId   Int
+  title      String
+  amount     Decimal?
+  body       String?
+  status     String    @default("draft")
+  validUntil DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  client    Client     @relation(fields: [clientId], references: [id])
+  contracts Contract[]
+
+  @@map("proposals")
+}
+
+model Contract {
+  id         Int       @id @default(autoincrement())
+  clientId   Int
+  proposalId Int?
+  title      String
+  type       String    @default("service")
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  status     String    @default("active")
+  body       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  client   Client    @relation(fields: [clientId], references: [id])
+  proposal Proposal? @relation(fields: [proposalId], references: [id])
+  invoices Invoice[]
+
+  @@map("contracts")
+}
+
+model Invoice {
+  id         Int       @id @default(autoincrement())
+  clientId   Int
+  contractId Int?
+  number     String
+  amount     Decimal
+  tax        Decimal   @default(0)
+  total      Decimal
+  dueDate    DateTime
+  paidAt     DateTime?
+  status     String    @default("unpaid")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  client   Client    @relation(fields: [clientId], references: [id])
+  contract Contract? @relation(fields: [contractId], references: [id])
+
+  @@map("invoices")
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  clientId    Int?
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      String    @default("open")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client Client? @relation(fields: [clientId], references: [id])
+
+  @@map("tasks")
+}
