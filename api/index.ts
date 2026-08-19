@@ -1,26 +1,27 @@
 import 'reflect-metadata';
-import express from 'express';
-import serverless from 'serverless-http';
+import express, { type Express } from 'express';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 
-// Vercel functions are stateless per cold start but reused across warm
-// invocations — build the Nest app once and cache the serverless handler,
-// instead of re-bootstrapping on every request.
-let cachedHandler: ReturnType<typeof serverless> | null = null;
+// serverless-http wraps a handler for AWS Lambda's (event, context) calling
+// convention. Vercel's Node runtime calls the export as plain (req, res) —
+// passing Vercel's req/res into a Lambda-shaped function silently breaks.
+// An Express app instance is already a valid (req, res) handler on its own,
+// so just expose that directly instead of wrapping it in anything.
+let cachedApp: Express | null = null;
 
-async function bootstrap() {
+async function bootstrap(): Promise<Express> {
   const expressApp = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
   app.enableCors();
   await app.init();
-  return serverless(expressApp);
+  return expressApp;
 }
 
 export default async function handler(req: any, res: any) {
-  if (!cachedHandler) {
-    cachedHandler = await bootstrap();
+  if (!cachedApp) {
+    cachedApp = await bootstrap();
   }
-  return cachedHandler(req, res);
+  return cachedApp(req, res);
 }
