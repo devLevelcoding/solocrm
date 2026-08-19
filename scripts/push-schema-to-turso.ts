@@ -28,8 +28,11 @@ async function main() {
     const sql = fs.readFileSync(sqlPath, 'utf-8');
     const statements = sql
       .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'));
+      // Each statement is preceded by a "-- CreateTable" comment line, not
+      // wrapped by one — strip comment lines out instead of rejecting the
+      // whole chunk because it starts with one.
+      .map(s => s.split('\n').filter(line => !line.trim().startsWith('--')).join('\n').trim())
+      .filter(s => s.length > 0);
 
     console.log(`Applying ${dir} (${statements.length} statement(s))...`);
     for (const stmt of statements) {
