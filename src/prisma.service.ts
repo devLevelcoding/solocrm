@@ -10,13 +10,18 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
     if (process.env.TURSO_DATABASE_URL) {
-      const { createClient } = require('@libsql/client');
+      // @prisma/adapter-libsql v6's PrismaLibSQL is an adapter *factory*: it
+      // wants the raw {url, authToken} config and creates the libsql client
+      // itself internally (lazily, per connect() call) — it does NOT take a
+      // pre-built client instance. Passing an already-created client here
+      // silently becomes `config.url === undefined` inside the factory,
+      // which crashed every request in production with
+      // `LibsqlError: URL_INVALID: The URL 'undefined' is not in a valid format`.
       const { PrismaLibSQL } = require('@prisma/adapter-libsql');
-      const libsql = createClient({
+      const adapter = new PrismaLibSQL({
         url: process.env.TURSO_DATABASE_URL,
         authToken: process.env.TURSO_AUTH_TOKEN,
       });
-      const adapter = new PrismaLibSQL(libsql);
       super({ adapter } as any);
     } else {
       super();
