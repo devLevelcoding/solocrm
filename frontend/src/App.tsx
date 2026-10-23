@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Sidebar, { type NavItem } from './components/Sidebar'
 import ResourceView from './components/ResourceView'
+import Copilot from './components/Copilot'
 import { listResource } from './api'
 import type { Client, Contract, Invoice, Proposal, Task } from './types'
 
@@ -18,6 +19,7 @@ const clientName = (row: { client?: Client }) =>
 export default function App() {
   const [active, setActive] = useState('clients')
   const [clients, setClients] = useState<Client[]>([])
+  const [copilot, setCopilot] = useState(false)
 
   useEffect(() => {
     listResource<Client>('clients').then(r => setClients(r.data)).catch(() => {})
@@ -30,7 +32,11 @@ export default function App() {
           solo<span className="text-txt2 font-normal">crm</span>
         </span>
         <div className="flex-1" />
-        <span className="text-xs text-txt2">Type 1 &middot; Pure SassFactory reuse</span>
+        <span className="text-xs text-txt2 hidden sm:inline">Type 1 &middot; Pure SassFactory reuse</span>
+        <button onClick={() => setCopilot(o => !o)}
+                className={`text-xs font-semibold rounded px-3 py-1.5 border ${copilot ? 'bg-accent text-white border-accent' : 'border-accent text-accent hover:bg-accent-dim'}`}>
+          Ask your CRM
+        </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -142,6 +148,7 @@ export default function App() {
             />
           )}
         </main>
+        <Copilot open={copilot} onClose={() => setCopilot(false)} />
       </div>
     </div>
   )
