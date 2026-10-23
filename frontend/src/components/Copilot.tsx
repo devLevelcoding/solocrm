@@ -4,7 +4,7 @@ import Markdown from './Markdown'
 // "Ask your CRM" (devLevelcoding/ask-your-crm): a read-only copilot on Cloud Run that answers from
 // this CRM's own API. Every number is computed by its tools, not by the model.
 // VITE_COPILOT_URL overrides it (e.g. http://localhost:3031 with a local copilot on a local API)
-const COPILOT_URL = (import.meta.env.VITE_COPILOT_URL ?? 'https://ask-your-crm-661261272598.europe-west1.run.app').replace(/\/$/, '')
+const COPILOT_URL = (import.meta.env.VITE_COPILOT_URL || 'https://ask-your-crm-661261272598.europe-west1.run.app').replace(/\/$/, '')
 
 const SAMPLES = ['Who owes me money?', 'Give me my weekly digest', 'Which tasks are overdue?', 'How is my pipeline?']
 const STATUS: Record<string, string> = {
